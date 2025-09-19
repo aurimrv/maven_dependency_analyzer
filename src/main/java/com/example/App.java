@@ -114,7 +114,7 @@ public class App {
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
             String methodSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
-            System.out.println("  Method: " + methodSignature);
+            System.out.println("  Caller: " + methodSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
                 String scope = mc.getScope().map(s -> s.toString() + ".").orElse("");
@@ -134,7 +134,7 @@ public class App {
                     dependencyType = "(Internal)";
                 }
 
-                System.out.println("    Method call: " + scope + calledMethodName + " " + dependencyType);
+                System.out.println("    Callee: " + scope + calledMethodName + " " + dependencyType);
             });
         }
 
@@ -145,7 +145,7 @@ public class App {
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
             String constructorSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
-            System.out.println("  Constructor: " + constructorSignature);
+            System.out.println("  Caller: " + constructorSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
                 String scope = mc.getScope().map(s -> s.toString() + ".").orElse("");
@@ -161,7 +161,7 @@ public class App {
                 } else {
                     dependencyType = "(Internal)";
                 }
-                System.out.println("    Method call: " + scope + calledMethodName + " " + dependencyType);
+                System.out.println("    Callee: " + scope + calledMethodName + " " + dependencyType);
             });
         }
 
