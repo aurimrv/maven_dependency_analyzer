@@ -1,23 +1,22 @@
 package com.example;
 
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.ast.type.Type;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.HashSet;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
+
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class App {
 
@@ -114,7 +113,7 @@ public class App {
             String className = n.findAncestor(ClassOrInterfaceDeclaration.class)
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
-            String methodSignature = className + "." + n.getNameAsString() + getParametersString(n.getParameters());
+            String methodSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
             System.out.println("  Método: " + methodSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
@@ -145,13 +144,13 @@ public class App {
             String className = n.findAncestor(ClassOrInterfaceDeclaration.class)
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
-            String constructorSignature = className + "." + n.getNameAsString() + getParametersString(n.getParameters());
+            String constructorSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
             System.out.println("  Construtor: " + constructorSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
                 String scope = mc.getScope().map(s -> s.toString() + ".").orElse("");
                 String dependencyType = "";
-
+                
                 if (mc.getScope().isPresent()) {
                     String scopeName = mc.getScope().get().toString();
                     if (internalClasses.contains(scopeName)) {
@@ -166,7 +165,15 @@ public class App {
             });
         }
 
-        private String getParametersString(List<Parameter> parameters) {
+        private String getModifiersAsString(NodeList<Modifier> modifiers) {
+        	String modifierStr = "";
+        	for(Modifier m: modifiers) {
+        		modifierStr += (m + " ");
+        	}
+        	return modifierStr;
+		}
+
+		private String getParametersString(List<Parameter> parameters) {
             if (!showParameters) {
                 return "(...)";
             }
