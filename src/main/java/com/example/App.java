@@ -33,14 +33,14 @@ public class App {
                 if (i + 1 < args.length) {
                     projectPath = args[++i];
                 } else {
-                    System.err.println("Erro: O parâmetro --project requer um caminho.");
+                    System.err.println("Error: The --project parameter requires a path.");
                     return;
                 }
             }
         }
 
         if (projectPath == null) {
-            System.err.println("Erro: O parâmetro --project é obrigatório. Ex: java -jar seu-analisador.jar --project /caminho/para/seu/projeto/maven");
+            System.err.println("Error: The --project parameter is required. Example: java -jar your-analyzer.jar --project /path/to/your/maven/project");
             return;
         }
 
@@ -48,13 +48,13 @@ public class App {
         File sourceDir = new File(projectRoot, "src/main/java");
 
         if (!sourceDir.exists() || !sourceDir.isDirectory()) {
-            System.err.println("Diretório de código fonte Java não encontrado: " + sourceDir.getAbsolutePath());
+            System.err.println("Java source code directory not found: " + sourceDir.getAbsolutePath());
             return;
         }
 
         List<File> javaFiles = listJavaFiles(sourceDir);
         if (javaFiles.isEmpty()) {
-            System.out.println("Nenhum arquivo Java encontrado em: " + sourceDir.getAbsolutePath());
+            System.out.println("No Java files found in: " + sourceDir.getAbsolutePath());
             return;
         }
 
@@ -66,25 +66,25 @@ public class App {
                     internalClasses.add(c.getNameAsString());
                 });
             } catch (FileNotFoundException e) {
-                System.err.println("Arquivo não encontrado: " + file.getAbsolutePath());
+                System.err.println("File not found: " + file.getAbsolutePath());
             } catch (Exception e) {
-                System.err.println("Erro ao analisar o arquivo " + file.getAbsolutePath() + ": " + e.getMessage());
+                System.err.println("Error parsing file " + file.getAbsolutePath() + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
-        System.out.println("Analisando " + javaFiles.size() + " arquivos Java...");
+        System.out.println("Analyzing " + javaFiles.size() + " Java files...");
 
         // Second pass: analyze dependencies
         for (File file : javaFiles) {
             try {
                 CompilationUnit cu = StaticJavaParser.parse(file);
-                System.out.println("\n--- Arquivo: " + file.getName() + " ---");
+                System.out.println("\n--- File: " + file.getName() + " ---");
                 cu.accept(new DependencyVisitor(), null);
             } catch (FileNotFoundException e) {
-                System.err.println("Arquivo não encontrado: " + file.getAbsolutePath());
+                System.err.println("File not found: " + file.getAbsolutePath());
             } catch (Exception e) {
-                System.err.println("Erro ao analisar o arquivo " + file.getAbsolutePath() + ": " + e.getMessage());
+                System.err.println("Error parsing file " + file.getAbsolutePath() + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -114,7 +114,7 @@ public class App {
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
             String methodSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
-            System.out.println("  Método: " + methodSignature);
+            System.out.println("  Method: " + methodSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
                 String scope = mc.getScope().map(s -> s.toString() + ".").orElse("");
@@ -125,16 +125,16 @@ public class App {
                 if (mc.getScope().isPresent()) {
                     String scopeName = mc.getScope().get().toString();
                     if (internalClasses.contains(scopeName)) {
-                        dependencyType = "(Interna)";
+                        dependencyType = "(Internal)";
                     } else {
-                        dependencyType = "(Externa)";
+                        dependencyType = "(External)";
                     }
                 } else {
                     // If no explicit scope, assume it's an internal call (e.g., 'this' or same class)
-                    dependencyType = "(Interna)";
+                    dependencyType = "(Internal)";
                 }
 
-                System.out.println("    Chamada de método: " + scope + calledMethodName + " " + dependencyType);
+                System.out.println("    Method call: " + scope + calledMethodName + " " + dependencyType);
             });
         }
 
@@ -145,7 +145,7 @@ public class App {
                                   .map(ClassOrInterfaceDeclaration::getNameAsString)
                                   .orElse("UnknownClass");
             String constructorSignature = getModifiersAsString(n.getModifiers()) + className + "." + n.getNameAsString() + getParametersString(n.getParameters());
-            System.out.println("  Construtor: " + constructorSignature);
+            System.out.println("  Constructor: " + constructorSignature);
             n.findAll(MethodCallExpr.class).forEach(mc -> {
                 String calledMethodName = mc.getNameAsString();
                 String scope = mc.getScope().map(s -> s.toString() + ".").orElse("");
@@ -154,14 +154,14 @@ public class App {
                 if (mc.getScope().isPresent()) {
                     String scopeName = mc.getScope().get().toString();
                     if (internalClasses.contains(scopeName)) {
-                        dependencyType = "(Interna)";
+                        dependencyType = "(Internal)";
                     } else {
-                        dependencyType = "(Externa)";
+                        dependencyType = "(External)";
                     }
                 } else {
-                    dependencyType = "(Interna)";
+                    dependencyType = "(Internal)";
                 }
-                System.out.println("    Chamada de método: " + scope + calledMethodName + " " + dependencyType);
+                System.out.println("    Method call: " + scope + calledMethodName + " " + dependencyType);
             });
         }
 
@@ -189,5 +189,3 @@ public class App {
         }
     }
 }
-
-
